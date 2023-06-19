@@ -1,4 +1,6 @@
+
 const LogViewer = ({ logs }) => {
+    //const { hasErrors } = logs;
     return (
         <div>
         <h2>Logs</h2>

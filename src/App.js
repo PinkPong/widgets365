@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import logo from './logo.png';
+import logo from './assets/logo.png';
 import { StApp, StHeader } from './styled-ui';
 import { Uploader } from './components/Uploader';
 import { ResultsViewer } from './components/ResultsViewer';
@@ -10,11 +10,12 @@ const App = () => {
   return (
     <StApp>
       <StHeader>
-        <img src={logo} alt="logo" />
+        <img src={logo} alt="logo" height='40px'/>
+        <h2>Log Validator</h2>
       </StHeader>
       <Uploader onComplete={setResults}/>
-      <ResultsViewer {...{results}} />
-      <LogViewer />
+      {results && <ResultsViewer {...{results}} />}
+      {results && results.hasError && <LogViewer />}
     </StApp>
   );
 }

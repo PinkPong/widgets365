@@ -1,4 +1,7 @@
 import styled from 'styled-components';
+import { ReactComponent as Passed } from './assets/passed.svg';
+import { ReactComponent as Failed } from './assets/failed.svg';
+import { ReactComponent as Warning } from './assets/warning.svg';
 
 const StApp = styled.div`
     display: flex;
@@ -11,17 +14,31 @@ const StApp = styled.div`
 
 const StHeader = styled.header`
     background-color: #fff;
-    min-height: 60px;
+    min-height: 50px;
     display: flex;
     flex-direction: row;
-    align-items: flex-start;
+    gap: 10px;
+    align-items: center;
     justify-content: flex-start;
     width: 100%;
-    color: white;
+    color: #4285f5;
+    margin-bottom: 20px;
+    border-bottom: 1px dotted #4285f5;
+    border-left: 10px solid #4285f5;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
 `;
 
 const StCode = styled.code`
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  border-radius: 5px;
+  border: 1px dotted #fff;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: space-between;
+  background-color: #666;
+  color: #fff;
 `;
 
 const StUploadForm = styled.div`
@@ -29,7 +46,8 @@ const StUploadForm = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 400px;
+  text-align: center;
+  width: 50%;
   height: 200px;
  `;
 
@@ -37,6 +55,7 @@ const StUploadForm = styled.div`
   width: 100%;
   height: 100%;
   border: 1px dotted #4285f5;
+  border-radius: 5px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -71,6 +90,50 @@ const StControlWrapper = styled.div`
   padding: 10px 0;
 `;
 
+const StPassed = styled(Passed)`
+  height: 20px;
+  width: 20px;
+`;
+
+const StFailed = styled(Failed)`
+  height: 20px;
+  width: 20px;
+`;
+
+const StWarning = styled(Warning)`
+  height: 20px;
+  width: 20px;
+`;
+
+const StResultsWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 50%;
+  user-select: none;
+`;
+
+const StSensorStatus = styled.div`
+  display: grid;
+  grid-template-columns: 70px 1fr 20px;
+  grid-gap: 10px;
+  width: 100%;
+  padding: 5px;
+  margin: 2px;
+  background-color: #ddd;
+  border-radius: 5px;  
+  &:nth-child(odd) {
+    background-color: #ccc;
+  }
+  & > div:first-child {
+    background-color: #4285f5;
+    border-radius: 5px;
+    text-align: center;
+    color: #fff;
+  }
+`;
+
 export { 
   StApp,
   StHeader,
@@ -79,5 +142,10 @@ export {
   StDropZone,
   StFileInput,
   StButton,
-  StControlWrapper
+  StControlWrapper,
+  StPassed,
+  StFailed,
+  StWarning,
+  StResultsWrapper,
+  StSensorStatus
 }

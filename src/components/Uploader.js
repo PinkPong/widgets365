@@ -45,7 +45,6 @@ const Uploader = ({ onComplete }) => {
     clearUploadData(); 
   };
 
-
   const startUpload = () => {
     const formData = new FormData();
     formData.append('file', file);
@@ -58,13 +57,13 @@ const Uploader = ({ onComplete }) => {
     xhr.addEventListener('load', ((e) => {
         console.info('upload complete', e.target.responseText);
         clearUploadData();
-        onComplete(e.target.responseText);
+        onComplete(JSON.parse(e.target.responseText));
     }));
 
     xhr.addEventListener('error', ((e) => { 
         //console.info('----error uploading', e.target.responseText);
         setUploadStatus(-1);
-        onComplete(e.target.responseText);
+        onComplete(JSON.parse(e.target.responseText));
     }));
 
     setUploadStatus(1);
