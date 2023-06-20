@@ -1,8 +1,8 @@
-import fs from 'fs';
-import formidable from 'formidable';
-import readline from 'readline';
-import { Transform } from 'stream';
-import axios from 'axios';
+const fs = require('fs');
+const formidable = require('formidable');
+const readline = require('readline');
+const { Transform } = require('stream');
+const axios = require('axios');
 
 const sample_log = `
 reference 70.0 45.0 6
