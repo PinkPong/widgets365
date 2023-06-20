@@ -30,7 +30,6 @@ monoxide mon-2
 
 class LogFileReader extends Transform {
   constructor(options) {
-    //console.info('------ LogReader constructor', options)
       super(options);
       this.logExcerpt = [];
       this.maxLines = options.maxLines || 100;
@@ -46,7 +45,6 @@ class LogFileReader extends Transform {
   }
 
   _flush(callback) {
-    console.info('------ _flush', this.logExcerpt);
     this.push(JSON.stringify(this.logExcerpt.join('.\n')));
     callback();
   }
@@ -54,8 +52,8 @@ class LogFileReader extends Transform {
 
 export default async function handler(req, res) {
   const { method, body } = req;
-  const { filePath, a } = body;
-  console.info('---------filePath', filePath, body, body.filePath, a)
+  const { filePath } = body;
+  
   if (method === 'POST') {
     if (!filePath) {
       res.status(400).json({ error: 'No filePath provided' });
@@ -70,12 +68,10 @@ export default async function handler(req, res) {
       });
 
       reader.on('line', (line) => {
-        //console.info('------ on line', line);
         reader.output.write(line + '\n');
       });
 
       reader.on('close', () => {
-        //console.info('------ on close');
         reader.output.end();
       });
 
