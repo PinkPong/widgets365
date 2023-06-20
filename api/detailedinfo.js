@@ -1,7 +1,8 @@
 import fs from 'fs';
 import readline from 'readline';
 import { Transform } from 'stream';
-import axios  from 'axios';
+
+const axios = require('axios');
 
 const sample_log = `
 reference 70.0 45.0 6
