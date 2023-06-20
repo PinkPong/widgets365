@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { StUploadForm, StFileInput, StButton, StControlWrapper } from '../styled-ui';
 import { Dropzone } from './Dropzone';
 
-const Uploader = ({ onComplete }) => {
+const Uploader = ({ setResults }) => {
   const [file, setFile] = useState(null);
   const [progress, setProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState(0);
@@ -52,18 +52,20 @@ const Uploader = ({ onComplete }) => {
     const xhr = new XMLHttpRequest();
     xhrRef.current = xhr;
 
+    setResults(null);
+    
     xhr.open('POST', '/api/logvalidator');
     xhr.upload.addEventListener('progress', handleUploadProgress);
     xhr.addEventListener('load', ((e) => {
         console.info('upload complete', e.target.responseText);
         clearUploadData();
-        onComplete(JSON.parse(e.target.responseText));
+        setResults(JSON.parse(e.target.responseText));
     }));
 
     xhr.addEventListener('error', ((e) => { 
         //console.info('----error uploading', e.target.responseText);
         setUploadStatus(-1);
-        onComplete(JSON.parse(e.target.responseText));
+        setResults(JSON.parse(e.target.responseText));
     }));
 
     setUploadStatus(1);

@@ -1,4 +1,3 @@
-import React from 'react';
 import { StResultsWrapper, StSensorStatus, StPassed, StFailed, StWarning, StCode } from '../styled-ui';
 
 const ResultsViewer = ({ results }) => {

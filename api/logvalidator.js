@@ -131,8 +131,7 @@ class LogProcessor extends Transform {
 export default async function handler(req, res) {
   const { method } = req;
 
-  switch (method) {
-    case 'POST':
+  if (method === 'POST') {
       try {
         const form = formidable({ multiples: false });
         form.parse(req, (error, fields, files) => {
@@ -182,9 +181,8 @@ export default async function handler(req, res) {
         console.error(error);
         res.status(500).json({ message: 'Error uploading file' });
       }
-      break;
-    default:
+    } else {
       res.setHeader('Allow', ['POST']);
       res.status(405).end(`Method ${method} Not Allowed`);
-  }
+    }
 }

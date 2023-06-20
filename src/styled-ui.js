@@ -37,7 +37,7 @@ const StCode = styled.code`
   align-items: center;
   width: 100%;
   justify-content: space-between;
-  background-color: #666;
+  background-color: #668;
   color: #fff;
 `;
 
@@ -51,7 +51,7 @@ const StUploadForm = styled.div`
   height: 200px;
  `;
 
- const StDropZone = styled.div`
+const StDropZone = styled.div`
   width: 100%;
   height: 100%;
   border: 1px dotted #4285f5;
@@ -134,6 +134,19 @@ const StSensorStatus = styled.div`
   }
 `;
 
+const StInfoMessage = styled.div`
+  border: 1px dotted #4285f5;
+  border-radius: 5px;
+  padding: 20px;
+  text-align: left;
+  background-color: #fff;
+  color: #4285f5;
+  display: flex;
+  flex-flow: column wrap;
+  align-items: center;
+  align-content: center;
+`;
+
 export { 
   StApp,
   StHeader,
@@ -147,5 +160,6 @@ export {
   StFailed,
   StWarning,
   StResultsWrapper,
-  StSensorStatus
+  StSensorStatus,
+  StInfoMessage
 }

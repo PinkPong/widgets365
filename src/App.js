@@ -7,15 +7,16 @@ import { LogViewer } from './components/LogViewer';
 
 const App = () => {
   const [results, setResults] = useState(null);
+  console.info('results', results)
   return (
     <StApp>
       <StHeader>
         <img src={logo} alt="logo" height='40px'/>
         <h2>Log Validator</h2>
       </StHeader>
-      <Uploader onComplete={setResults}/>
-      {results && <ResultsViewer {...{results}} />}
-      {results && results.hasError && <LogViewer />}
+      <Uploader {...{setResults}}/>
+      {results && <ResultsViewer {...{results}}/>}
+      {results && results.hasErrors && <LogViewer {...{results}}/>}
     </StApp>
   );
 }
