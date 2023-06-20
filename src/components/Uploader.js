@@ -20,7 +20,6 @@ const Uploader = ({ setResults }) => {
   };
 
   const onFileChange = (event) => {
-    console.info('----file change', event.target.files[0]);
     setFile(event.target.files[0]);
   };
 
@@ -38,7 +37,6 @@ const Uploader = ({ setResults }) => {
   };
 
   const cancelUpload = () => { 
-    console.info('----cancel upload',xhrRef);
     if (xhrRef.current) {
       xhrRef.current.abort();
     }
@@ -53,17 +51,15 @@ const Uploader = ({ setResults }) => {
     xhrRef.current = xhr;
 
     setResults(null);
-    
+
     xhr.open('POST', '/api/logvalidator');
     xhr.upload.addEventListener('progress', handleUploadProgress);
     xhr.addEventListener('load', ((e) => {
-        console.info('upload complete', e.target.responseText);
         clearUploadData();
         setResults(JSON.parse(e.target.responseText));
     }));
 
     xhr.addEventListener('error', ((e) => { 
-        //console.info('----error uploading', e.target.responseText);
         setUploadStatus(-1);
         setResults(JSON.parse(e.target.responseText));
     }));

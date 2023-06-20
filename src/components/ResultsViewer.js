@@ -15,7 +15,7 @@ const ResultsViewer = ({ results }) => {
             </StSensorStatus>
             {
                 Object.keys(results)
-                .filter(key => key !== 'hasErrors' && key !== 'filePath')
+                .filter(key => key !== 'hasErrors' && key !== 'filePath' && key !== 'detailedResults')
                 .map(key => {
                     const value = results[key];
                     return (

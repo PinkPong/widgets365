@@ -7,7 +7,6 @@ import { LogViewer } from './components/LogViewer';
 
 const App = () => {
   const [results, setResults] = useState(null);
-  console.info('results', results)
   return (
     <StApp>
       <StHeader>

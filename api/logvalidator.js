@@ -2,6 +2,55 @@ import fs from 'fs';
 import formidable from 'formidable';
 import readline from 'readline';
 import { Transform } from 'stream';
+import axios from 'axios';
+
+const sample_log = `
+reference 70.0 45.0 6
+thermometer temp-1
+2007-04-05T22:00 72.4
+2007-04-05T22:01 76.0
+2007-04-05T22:02 79.1
+2007-04-05T22:11 67.5
+thermometer temp-2
+2007-04-05T22:01 69.5
+2007-04-05T22:05 69.8
+humidity hum-1
+2007-04-05T22:04 45.2
+2007-04-05T22:06 45.1
+humidity hum-2
+2007-04-05T22:04 44.4
+2007-04-05T22:06 44.9
+2007-04-05T22:07 43.8
+monoxide mon-1
+2007-04-05T22:05 7
+2007-04-05T22:06 9
+monoxide mon-2
+2007-04-05T22:04 2
+2007-04-05T22:05 4
+2007-04-05T22:08 6`;
+
+class LogFileReader extends Transform {
+  constructor(options) {
+      super(options);
+      this.logExcerpt = [];
+      this.maxLines = options.maxLines || 100;
+  }
+
+  _transform(chunk, encoding, callback) {
+      const lines = chunk.toString().toLowerCase().split('\n').filter(line => line !== '');
+      const { length } = this.logExcerpt;
+      if ( length < this.maxLines) {
+          this.logExcerpt = [...this.logExcerpt, ...lines];
+      }
+      callback();
+  }
+
+  _flush(callback) {
+    this.push(JSON.stringify(this.logExcerpt.join('\n')));
+    callback();
+  }
+};
+
 
 // Helper function to calculate mean
 const calculateMean = (array) => {
@@ -39,9 +88,7 @@ class LogProcessor extends Transform {
 
   _transform(chunk, encoding, callback) {
       let records = chunk.toString().toLowerCase().split('\n');
-      //console.info('------ _transform', chunk.toString(), lines);
       for (let rec of records) {
-          //console.info('---- line', rec);
           if (rec !== '') {            
             const parts = rec.split(' ');
             // we are looking for the reference values only once
@@ -82,18 +129,15 @@ class LogProcessor extends Transform {
             }
           }
       }
-      console.info('-- _transform cb', JSON.stringify(callback));
       callback();
   }
 
   _flush(callback) {
-    console.info('------ _flush', this.data, this.references);
       let results = { hasErrors: this.hasErrors };
       for (let sensor in this.records) {
           const readings = this.records[sensor].readings;
           const sensorType = this.records[sensor].type;
 
-          console.info('------ _flush', sensor, sensorType, readings);
           switch (sensorType) {
               case 'thermometer':
                   const mean = calculateMean(readings);
@@ -123,7 +167,6 @@ class LogProcessor extends Transform {
           }
       }
       this.push(JSON.stringify(results));
-      console.info('-- _flash cb', callback);
       callback();
   }
 };
@@ -147,7 +190,6 @@ export default async function handler(req, res) {
                 console.error(error);
                 res.status(500).json({ message: 'Error uploading file' });
               } else {
-                console.log(`File saved to ${filePath}`);
 
                 // Transformation stream to process and classify the data
                 // Use the transform stream to process a log file
@@ -158,21 +200,68 @@ export default async function handler(req, res) {
                 });
 
                 reader.on('line', (line) => {
-                  //console.info('------ on line', line);
                   reader.output.write(line + '\n');
                 });
 
                 reader.on('close', () => {
-                  //console.info('------ on close');
                   reader.output.end();
                 });
 
                 reader.output.on('data', (data) => {
-                  console.log('------ reader.output.on.data', data.toString());
-                  res.status(200).json({ filePath, ...JSON.parse(data.toString()) });
-                });
+                  const { hasErrors } = JSON.parse(data.toString());
+                  if (hasErrors) { 
+                    try {
+                      const logReader = readline.createInterface({
+                        input: fs.createReadStream(filePath),
+                        output: new LogFileReader({ maxLines: 50 }),
+                        console: false
+                      });
+                
+                      logReader.on('line', (line) => {
+                        logReader.output.write(line + '\n');
+                      });
+                
+                      logReader.on('close', () => {
+                        logReader.output.end();
+                      });
+                
+                      logReader.output.on('data', async (sampleData) => {
+                        const apiHost = process.env.API_HOST ?? 'https://api.openai.com'
+                        const apiKey = process.env.OPENAI_KEY
+                        const apiUrl = `${apiHost}/v1/chat/completions`;
 
-                //res.status(200).json({ message: 'File uploaded successfully' });
+                        const response = await axios.post(apiUrl, {
+                          model:'gpt-3.5-turbo',
+                            messages: [
+                                {
+                                  role: 'system',
+                                  content: `you are responsible for incoming logs valiadation. valid log should look like this: ${sample_log}`
+                                },
+                                {
+                                  role: 'user',
+                                  content: `if my data is very different respond with "YOU UPLOADED WRONG FILE", otherwise find and list anomalies with my data: ${sampleData.toString()}`
+                                },
+                              ],
+                              temperature: 0.2
+                            }, {
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    Authorization: `Bearer ${apiKey}`,
+                                }
+                            },
+                        );
+                        const { data: { choices } } = response;
+                        const detailedResults = choices?.[0]?.message?.content;
+                        res.status(200).json({ ...JSON.parse(data.toString()), detailedResults});
+                      });
+                    }  catch (error) {
+                      console.error(error);
+                      res.status(500).json({ message: 'Error uploading file' });
+                    }
+                  }  else {
+                    res.status(200).json({ ...JSON.parse(data.toString()) });
+                  }
+                });
               }
             });
           }
