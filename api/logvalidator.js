@@ -2,7 +2,9 @@ const fs = require('fs');
 const formidable = require('formidable');
 const readline = require('readline');
 const { Transform } = require('stream');
-const axios = require('axios');
+const https = require('https');
+
+//const axios = require('axios');
 
 const sample_log = `
 reference 70.0 45.0 6
@@ -225,12 +227,58 @@ export default async function handler(req, res) {
                         logReader.output.end();
                       });
                 
-                      logReader.output.on('data', async (sampleData) => {
+                      logReader.output.on('data', (sampleData) => {
                         const apiHost = process.env.API_HOST ?? 'https://api.openai.com'
                         const apiKey = process.env.OPENAI_KEY
                         const apiUrl = `${apiHost}/v1/chat/completions`;
 
-                        const response = await axios.post(apiUrl, {
+                        const options = {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${apiKey}`
+                          }
+                        };
+
+                        const openAIrequest = https.request(apiUrl, options, (response) => {
+                          let responseData = '';
+                    
+                          response.on('data', (chunk) => {
+                            responseData += chunk;
+                          });
+                    
+                          response.on('end', () => {
+                            const resp = JSON.parse(responseData);
+                            const { choices }  = resp;
+                            const detailedResults = choices?.[0]?.message?.content;
+                            
+                            res.status(200).json({ ...JSON.parse(data.toString()), detailedResults});
+                          });
+                        });
+
+                        openAIrequest.on('error', (error) => {
+                          console.error(error);
+                          reject(new Error('---- apiRequest response error ----', error));
+                        });
+                    
+                        openAIrequest.write(JSON.stringify(
+                          {
+                            model:'gpt-3.5-turbo',
+                              messages: [
+                                  {
+                                    role: 'system',
+                                    content: `you are responsible for incoming logs valiadation. valid log should look like this: ${sample_log}`
+                                  },
+                                  {
+                                    role: 'user',
+                                    content: `if my data is very different respond with "YOU UPLOADED WRONG FILE", otherwise find and list anomalies with my data: ${sampleData.toString()}`
+                                  },
+                                ],
+                                temperature: 0.2
+                              }
+                        ));
+                        openAIrequest.end();
+                        /*const response = await axios.post(apiUrl, {
                           model:'gpt-3.5-turbo',
                             messages: [
                                 {
@@ -249,10 +297,10 @@ export default async function handler(req, res) {
                                     Authorization: `Bearer ${apiKey}`,
                                 }
                             },
-                        );
-                        const { data: { choices } } = response;
+                        );*/
+                        /*const { data: { choices } } = response;
                         const detailedResults = choices?.[0]?.message?.content;
-                        res.status(200).json({ ...JSON.parse(data.toString()), detailedResults});
+                        res.status(200).json({ ...JSON.parse(data.toString()), detailedResults});*/
                       });
                     }  catch (error) {
                       console.error(error);
